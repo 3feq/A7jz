@@ -435,7 +435,9 @@ function StartupScreen({ onDone }) {
 export default function App() {
   const [splash, setSplash]   = useState(true);
   const [authScr, setAuthScr] = useState(null);
-  const [user, setUser]       = useState(null);
+  const [user, setUser] = useState(()=>{
+  try { const u=localStorage.getItem("a7jz_user"); return u?JSON.parse(u):null; } catch{ return null; }
+});
   const [stats, setStats]     = useState({...DEF_STATS});
   const [page, setPage]       = useState("home");   // home | map | detail | bookings | profile
   const [pageStack, setPageStack] = useState([]);
