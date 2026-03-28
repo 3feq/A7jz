@@ -504,6 +504,18 @@ export default function App() {
 }, [user]);
 
   // ── Firebase: fetch all bookings ─────────────────────────────────
+  useEffect(()=>{
+  const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+    if(firebaseUser){
+      const saved = JSON.parse(localStorage.getItem("a7jz_profile_"+firebaseUser.uid)||"null");
+      setUser(saved || { name: firebaseUser.email, email: firebaseUser.email, avatar: null, uid: firebaseUser.uid });
+      setSplash(false);
+    } else {
+      setUser(null);
+    }
+  });
+  return ()=>unsub();
+}, []);
   const fetchBks = useCallback(async () => {
   if(!user) { setBks([]); return; }
   setBksLoading(true);
@@ -587,36 +599,38 @@ export default function App() {
     if(parts.length !== 2) return false;
     return ALLOWED_DOMAINS.includes(parts[1]);
   };
-  const doReg = () => {
+const doReg = async () => {
   if(!regF.name.trim()||!regF.email.trim()||!regF.pw){ setFErr("يرجى ملء جميع الحقول"); return; }
   if(!isValidEmail(regF.email)){ setFErr("يرجى استخدام بريد حقيقي"); return; }
   if(regF.pw.length<6){ setFErr("كلمة المرور 6 أحرف على الأقل"); return; }
-  const newUser = {name:regF.name,phone:regF.phone,email:regF.email,pw:regF.pw,avatar:null};
-  localStorage.setItem("a7jz_account", JSON.stringify(newUser));
-  localStorage.setItem("a7jz_user", JSON.stringify(newUser));
-  setUser(newUser);
-  setAuthScr(null); setFErr("");
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, regF.email, regF.pw);
+    const profile = { name:regF.name, phone:regF.phone, email:regF.email, avatar:null, uid:cred.user.uid };
+    localStorage.setItem("a7jz_profile_"+cred.user.uid, JSON.stringify(profile));
+    setUser(profile);
+    setAuthScr(null); setFErr("");
+  } catch(e) {
+    if(e.code==="auth/email-already-in-use") setFErr("الإيميل مستخدم مسبقاً");
+    else setFErr("حدث خطأ: "+e.message);
+  }
 };
 
-  const doLog = () => {
+const doLog = async () => {
   if(!logF.email.trim()||!logF.pw){ setFErr("يرجى إدخال البيانات"); return; }
   if(logF.email.trim()===ADMIN_EMAIL && logF.pw===ADMIN_PW){
     setAdminAuth(true); setAuthScr(null); setFErr(""); swPage("admin"); return;
   }
-  // check saved account
   try {
-    const acc = JSON.parse(localStorage.getItem("a7jz_account")||"null");
-    const usr = JSON.parse(localStorage.getItem("a7jz_user")||"null");
-    const saved = acc || usr;
-    if(!saved || logF.email.trim()!==saved.email.trim() || logF.pw!==saved.pw){
-      setFErr("بيانات الدخول غير صحيحة"); return;
-    }
-    localStorage.setItem("a7jz_user", JSON.stringify(saved));
-    localStorage.setItem("a7jz_account", JSON.stringify(saved));
-    setUser(saved);
+    const cred = await signInWithEmailAndPassword(auth, logF.email, logF.pw);
+    const saved = JSON.parse(localStorage.getItem("a7jz_profile_"+cred.user.uid)||"null");
+    const profile = saved || { name:cred.user.email, email:cred.user.email, avatar:null, uid:cred.user.uid };
+    setUser(profile);
     setAuthScr(null); setFErr("");
-  } catch { setFErr("حدث خطأ، حاول مرة أخرى"); }
+  } catch(e) {
+    setFErr("بيانات الدخول غير صحيحة");
+  }
 };
+
 
 
   const pillSt = (on) => ({
@@ -1100,7 +1114,7 @@ export default function App() {
               </div>
             )}
           </div>
-          <button onClick={()=>{setUser(null);setStats({...DEF_STATS});swPage("home");}} style={{border:`1.5px solid ${ER}`,borderRadius:12,padding:12,color:ER,fontSize:13,fontWeight:700,background:"none",width:"100%",cursor:"pointer",fontFamily:"inherit"}}>تسجيل الخروج</button>
+         <button onClick={()=>{ signOut(auth); setUser(null); setStats({...DEF_STATS}); swPage("home"); }} style={{border:`1.5px solid ${ER}`,borderRadius:12,padding:12,color:ER,fontSize:13,fontWeight:700,background:"none",width:"100%",cursor:"pointer",fontFamily:"inherit"}}>تسجيل الخروج</button>
         </div>
 
       </div>
