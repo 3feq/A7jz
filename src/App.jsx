@@ -577,21 +577,30 @@ export default function App() {
     return ALLOWED_DOMAINS.includes(parts[1]);
   };
   const doReg = () => {
-    if(!regF.name.trim()||!regF.email.trim()||!regF.pw){ setFErr("يرجى ملء جميع الحقول"); return; }
-    if(!isValidEmail(regF.email)){ setFErr("يرجى استخدام بريد حقيقي (Gmail, Yahoo, Hotmail, Outlook, iCloud...)"); return; }
-    if(regF.pw.length<6){ setFErr("كلمة المرور 6 أحرف على الأقل"); return; }
-    setUser({name:regF.name,phone:regF.phone,email:regF.email,pw:regF.pw,avatar:null});
-    setAuthScr(null); setFErr("");
+  if(!regF.name.trim()||!regF.email.trim()||!regF.pw){ setFErr("يرجى ملء جميع الحقول"); return; }
+  if(!isValidEmail(regF.email)){ setFErr("يرجى استخدام بريد حقيقي"); return; }
+  if(regF.pw.length<6){ setFErr("كلمة المرور 6 أحرف على الأقل"); return; }
+  const newUser = {name:regF.name,phone:regF.phone,email:regF.email,pw:regF.pw,avatar:null};
+  localStorage.setItem("a7jz_account", JSON.stringify(newUser));
+  localStorage.setItem("a7jz_user", JSON.stringify(newUser));
+  setUser(newUser);
+  setAuthScr(null); setFErr("");
+};
+
   };
   const doLog = () => {
-    if(!logF.email.trim()||!logF.pw){ setFErr("يرجى إدخال البيانات"); return; }
-    // admin shortcut — intercept before normal login
-    if(logF.email.trim()===ADMIN_EMAIL && logF.pw===ADMIN_PW){
-      setAdminAuth(true); setAuthScr(null); setFErr(""); swPage("admin"); return;
-    }
-    if(!user||logF.email!==user.email||logF.pw!==user.pw){ setFErr("بيانات الدخول غير صحيحة"); return; }
-    setAuthScr(null); setFErr("");
-  };
+  if(!logF.email.trim()||!logF.pw){ setFErr("يرجى إدخال البيانات"); return; }
+  if(logF.email.trim()===ADMIN_EMAIL && logF.pw===ADMIN_PW){
+    setAdminAuth(true); setAuthScr(null); setFErr(""); swPage("admin"); return;
+  }
+  try {
+    const saved = JSON.parse(localStorage.getItem("a7jz_account")||"null");
+    if(!saved||logF.email!==saved.email||logF.pw!==saved.pw){ setFErr("بيانات الدخول غير صحيحة"); return; }
+    localStorage.setItem("a7jz_user", JSON.stringify(saved));
+    setUser(saved);
+  } catch { setFErr("حدث خطأ، حاول مرة أخرى"); return; }
+  setAuthScr(null); setFErr("");
+};
 
   const pillSt = (on) => ({
     borderRadius:9, border:`1.5px solid ${on?P:BD}`, padding:"8px 14px", fontSize:13,
