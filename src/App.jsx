@@ -500,15 +500,21 @@ export default function App() {
 
   // ── Firebase: fetch all bookings ─────────────────────────────────
   const fetchBks = useCallback(async () => {
-    setBksLoading(true);
-    try {
-      const q = query(collection(db, "bookings"), orderBy("createdAt", "desc"));
-      const snap = await getDocs(q);
-      const list = snap.docs.map(d => ({ ...d.data(), _fid: d.id }));
-      setBks(list);
-    } catch(e) { console.error("fetch error", e); }
-    setBksLoading(false);
-  }, []);
+  if(!user) { setBks([]); return; }
+  setBksLoading(true);
+  try {
+    const q = query(
+      collection(db, "bookings"),
+      orderBy("createdAt", "desc")
+    );
+    const snap = await getDocs(q);
+    const list = snap.docs
+      .map(d => ({ ...d.data(), _fid: d.id }))
+      .filter(b => b.userEmail === user.email);
+    setBks(list);
+  } catch(e) { console.error("fetch error", e); }
+  setBksLoading(false);
+}, [user]);
 
   useEffect(() => { fetchBks(); }, [fetchBks]);
 
@@ -592,16 +598,21 @@ export default function App() {
   if(logF.email.trim()===ADMIN_EMAIL && logF.pw===ADMIN_PW){
     setAdminAuth(true); setAuthScr(null); setFErr(""); swPage("admin"); return;
   }
-    try {
-    const saved = JSON.parse(localStorage.getItem("a7jz_account")||"null");
-    if(!saved||logF.email!==saved.email||logF.pw!==saved.pw){
+  // check saved account
+  try {
+    const acc = JSON.parse(localStorage.getItem("a7jz_account")||"null");
+    const usr = JSON.parse(localStorage.getItem("a7jz_user")||"null");
+    const saved = acc || usr;
+    if(!saved || logF.email.trim()!==saved.email.trim() || logF.pw!==saved.pw){
       setFErr("بيانات الدخول غير صحيحة"); return;
     }
     localStorage.setItem("a7jz_user", JSON.stringify(saved));
+    localStorage.setItem("a7jz_account", JSON.stringify(saved));
     setUser(saved);
     setAuthScr(null); setFErr("");
   } catch { setFErr("حدث خطأ، حاول مرة أخرى"); }
 };
+
 
   const pillSt = (on) => ({
     borderRadius:9, border:`1.5px solid ${on?P:BD}`, padding:"8px 14px", fontSize:13,
