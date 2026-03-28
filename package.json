@@ -18,8 +18,12 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build"
   },
-  "eslintConfig": {
-    "extends": ["react-app"]
+    "eslintConfig": {
+    "extends": ["react-app"],
+    "rules": {
+      "no-unused-vars": "off"
+    }
+  },
   },
   "browserslist": {
     "production": [">0.2%", "not dead", "not op_mini all"],
