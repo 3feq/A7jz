@@ -517,21 +517,24 @@ export default function App() {
   return ()=>unsub();
 }, []);
   const fetchBks = useCallback(async () => {
-  if(!user) { setBks([]); return; }
   setBksLoading(true);
   try {
-    const q = query(
-      collection(db, "bookings"),
-      orderBy("createdAt", "desc")
-    );
+    const q = query(collection(db, "bookings"), orderBy("createdAt", "desc"));
     const snap = await getDocs(q);
-    const list = snap.docs
-      .map(d => ({ ...d.data(), _fid: d.id }))
-      .filter(b => b.userEmail === user.email);
-    setBks(list);
+    const allBks = snap.docs.map(d => ({ ...d.data(), _fid: d.id }));
+    
+    // Admin sees all — regular user sees only their own
+    if(adminAuth) {
+      setBks(allBks);
+    } else if(user) {
+      setBks(allBks.filter(b => b.userEmail === user.email));
+    } else {
+      setBks([]);
+    }
   } catch(e) { console.error("fetch error", e); }
   setBksLoading(false);
-}, [user]);
+}, [user, adminAuth]);
+
 
 
   useEffect(() => { fetchBks(); }, [fetchBks]);
