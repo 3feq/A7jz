@@ -592,13 +592,15 @@ export default function App() {
   if(logF.email.trim()===ADMIN_EMAIL && logF.pw===ADMIN_PW){
     setAdminAuth(true); setAuthScr(null); setFErr(""); swPage("admin"); return;
   }
-  try {
+    try {
     const saved = JSON.parse(localStorage.getItem("a7jz_account")||"null");
-    if(!saved||logF.email!==saved.email||logF.pw!==saved.pw){ setFErr("بيانات الدخول غير صحيحة"); return; }
+    if(!saved||logF.email!==saved.email||logF.pw!==saved.pw){
+      setFErr("بيانات الدخول غير صحيحة"); return;
+    }
     localStorage.setItem("a7jz_user", JSON.stringify(saved));
     setUser(saved);
-  } catch { setFErr("حدث خطأ، حاول مرة أخرى"); return; }
-  setAuthScr(null); setFErr("");
+    setAuthScr(null); setFErr("");
+  } catch { setFErr("حدث خطأ، حاول مرة أخرى"); }
 };
 
   const pillSt = (on) => ({
