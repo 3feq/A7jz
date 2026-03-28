@@ -533,6 +533,7 @@ export default function App() {
   setBksLoading(false);
 }, [user]);
 
+
   useEffect(() => { fetchBks(); }, [fetchBks]);
 
   const goTo = (p) => { setPageStack(prev=>[...prev,page]); setPage(p); window.scrollTo(0,0); };
