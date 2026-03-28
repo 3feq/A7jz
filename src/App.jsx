@@ -493,6 +493,10 @@ export default function App() {
   const avRef = useRef(null);
 
   const showT = (m) => { setToast(m); setTimeout(()=>setToast(null),2400); };
+  useEffect(()=>{
+  if(user) localStorage.setItem("a7jz_user", JSON.stringify(user));
+  else localStorage.removeItem("a7jz_user");
+}, [user]);
 
   // ── Firebase: fetch all bookings ─────────────────────────────────
   const fetchBks = useCallback(async () => {
