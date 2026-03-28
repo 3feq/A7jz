@@ -433,7 +433,10 @@ function StartupScreen({ onDone }) {
    MAIN APP
    ═══════════════════════════════════════════════════════════════════ */
 export default function App() {
-  const [splash, setSplash]   = useState(true);
+  const [splash, setSplash] = useState(()=>{
+  try { return !localStorage.getItem("a7jz_user"); }
+  catch { return true; }
+});
   const [authScr, setAuthScr] = useState(null);
   const [user, setUser] = useState(()=>{
   try { const u=localStorage.getItem("a7jz_user"); return u?JSON.parse(u):null; } catch{ return null; }
