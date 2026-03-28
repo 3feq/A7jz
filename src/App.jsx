@@ -587,7 +587,6 @@ export default function App() {
   setAuthScr(null); setFErr("");
 };
 
-  };
   const doLog = () => {
   if(!logF.email.trim()||!logF.pw){ setFErr("يرجى إدخال البيانات"); return; }
   if(logF.email.trim()===ADMIN_EMAIL && logF.pw===ADMIN_PW){
